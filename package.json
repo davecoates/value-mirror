@@ -1,0 +1,53 @@
+{
+  "name": "value-mirror",
+  "version": "0.0.1",
+  "description": "value-mirror-description",
+  "main": "lib/index.js",
+  "scripts": {
+    "clean": "rimraf lib dist",
+    "build": "babel src --out-dir lib",
+    "build:umd": "webpack src/index.js dist/value-mirror.js && NODE_ENV=production webpack src/index.js dist/value-mirror.min.js",
+    "lint": "eslint src test examples",
+    "test": "NODE_ENV=test mocha",
+    "test:watch": "NODE_ENV=test mocha --watch",
+    "test:cov": "babel-node ./node_modules/.bin/isparta cover ./node_modules/.bin/_mocha",
+    "prepublish": "npm run lint && npm run test && npm run clean && npm run build && npm run build:umd"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davecoates/value-mirror.git"
+  },
+  "keywords": [
+    "value-mirror-keywords"
+  ],
+  "author": "Dave Coates",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/davecoates/value-mirror/issues"
+  },
+  "homepage": "https://github.com/davecoates/value-mirror",
+  "devDependencies": {
+    "babel": "^6.3.13",
+    "babel-cli": "^6.7.7",
+    "babel-core": "^6.7.7",
+    "babel-eslint": "^6.0.3",
+    "babel-loader": "^6.2.0",
+    "babel-plugin-transform-flow-strip-types": "^6.7.0",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-stage-0": "^6.3.13",
+    "eslint": "^2.8.0",
+    "eslint-config-airbnb": "7.0.0",
+    "eslint-plugin-flowtype": "^2.2.6",
+    "expect": "^1.18.0",
+    "immutable": "^3.8.1",
+    "isparta": "^3.0.3",
+    "mocha": "^2.3.4",
+    "rimraf": "^2.4.4",
+    "webpack": "^1.12.9",
+    "webpack-dev-server": "^1.14.0"
+  },
+  "dependencies": {
+    "invariant": "^2.2.0",
+    "lodash.isobject": "^3.0.2"
+  }
+}
