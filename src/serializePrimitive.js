@@ -1,14 +1,14 @@
 // @flow
 import type {
     UnserializableNumber,
-    NumberMirror,
-    StringMirror,
-    UndefinedMirror,
-    BooleanMirror,
-    SymbolMirror,
+    NumberDescription,
+    StringDescription,
+    UndefinedDescription,
+    BooleanDescription,
+    SymbolDescription,
 } from './types';
 
-export function numberMirror(value: number) : NumberMirror {
+export function serializeNumber(value: number) : NumberDescription {
     let representation:number|UnserializableNumber = value;
 
     if (isNaN(value)) {
@@ -27,27 +27,27 @@ export function numberMirror(value: number) : NumberMirror {
     };
 }
 
-export function undefinedMirror() : UndefinedMirror {
+export function serializeUndefined() : UndefinedDescription {
     return {
         type: 'undefined',
     };
 }
 
-export function stringMirror(value: string) : StringMirror {
+export function serializeString(value: string) : StringDescription {
     return {
         type: 'string',
         value,
     };
 }
 
-export function booleanMirror(value: boolean) : BooleanMirror {
+export function serializeBoolean(value: boolean) : BooleanDescription {
     return {
         type: 'boolean',
         value,
     };
 }
 
-export function symbolMirror(value: Symbol) : SymbolMirror {
+export function serializeSymbol(value: Symbol) : SymbolDescription {
     return {
         type: 'symbol',
         value: value.toString(),

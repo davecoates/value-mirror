@@ -1,39 +1,39 @@
 // @flow
 export type UnserializableNumber = 'NaN' | 'Infinity' | '-Infinity' | '-0';
-export type NumberMirror = {
+export type NumberDescription = {
     value: UnserializableNumber | number;
     type: 'number';
 };
-export type StringMirror = {
+export type StringDescription = {
     value: string;
     type: 'string';
 };
-export type UndefinedMirror = {
+export type UndefinedDescription = {
     type: 'undefined'
 };
-export type BooleanMirror = {
+export type BooleanDescription = {
     value: boolean;
     type: 'boolean';
 }
-export type SymbolMirror = {
+export type SymbolDescription = {
     value: string;
     type: 'symbol';
 }
 export type RemoteObjectId = number;
-export type NullMirror = {
+export type NullDescription = {
     type: 'object';
     subType: 'null';
 };
-export type PlainObject = {
+export type PlainObjectDescription = {
     type: 'object';
     objectId: RemoteObjectId;
 }
-export type ObjectMirror = NullMirror | PlainObject;
-export type Mirror = (NumberMirror | UndefinedMirror | BooleanMirror | StringMirror | SymbolMirror | ObjectMirror);
-/* eslint-disable */
-export interface LiveMirror {
-    value: any;
-    objectId: ?RemoteObjectId;
-    serialize() : Mirror;
+export type ArrayDescription = {
+    type: 'object';
+    subType: 'array';
+    objectId: RemoteObjectId;
+    size: number;
 }
-export type LiveMirrorMaker = (value: any) => LiveMirror;
+export type ObjectDescription = NullDescription | PlainObjectDescription | ArrayDescription;
+export type ValueDescription = (NumberDescription | UndefinedDescription | BooleanDescription | StringDescription | SymbolDescription | ObjectDescription);
+export type Serializer = (value: any) => ValueDescription;

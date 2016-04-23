@@ -1,64 +1,64 @@
-import ValueMirror from '../src/ValueMirror';
+import serialize from '../src';
 import expect from 'expect';
 
-describe('Value Mirror (primitives)', () => {
+describe('Serialize (primitives)', () => {
     it('should handle numbers', () => {
-        expect((new ValueMirror(1)).serialize()).toEqual({
+        expect((serialize(1))).toEqual({
             type: 'number',
             value: 1,
         });
-        expect((new ValueMirror(-23)).serialize()).toEqual({
+        expect((serialize(-23))).toEqual({
             type: 'number',
             value: -23,
         });
-        expect((new ValueMirror(NaN)).serialize()).toEqual({
+        expect((serialize(NaN))).toEqual({
             type: 'number',
             value: 'NaN',
         });
-        expect((new ValueMirror(Infinity)).serialize()).toEqual({
+        expect((serialize(Infinity))).toEqual({
             type: 'number',
             value: 'Infinity',
         });
-        expect((new ValueMirror(-Infinity)).serialize()).toEqual({
+        expect((serialize(-Infinity))).toEqual({
             type: 'number',
             value: '-Infinity',
         });
-        expect((new ValueMirror(-0)).serialize()).toEqual({
+        expect((serialize(-0))).toEqual({
             type: 'number',
             value: '-0',
         });
     });
     it('should handle strings', () => {
-        expect((new ValueMirror('')).serialize()).toEqual({
+        expect((serialize(''))).toEqual({
             type: 'string',
             value: '',
         });
-        expect((new ValueMirror("i'm a string")).serialize()).toEqual({
+        expect((serialize("i'm a string"))).toEqual({
             type: 'string',
             value: "i'm a string",
         });
     });
     it('should handle booleans', () => {
-        expect((new ValueMirror(true)).serialize()).toEqual({
+        expect((serialize(true))).toEqual({
             type: 'boolean',
             value: true,
         });
-        expect((new ValueMirror(false)).serialize()).toEqual({
+        expect((serialize(false))).toEqual({
             type: 'boolean',
             value: false,
         });
     });
     it('should handle undefined', () => {
-        expect((new ValueMirror(undefined)).serialize()).toEqual({
+        expect((serialize(undefined))).toEqual({
             type: 'undefined',
         });
     });
     it('should handle symbols', () => {
-        expect((new ValueMirror(Symbol.iterator)).serialize()).toEqual({
+        expect((serialize(Symbol.iterator))).toEqual({
             type: 'symbol',
             value: 'Symbol(Symbol.iterator)',
         });
-        expect((new ValueMirror(Symbol('test'))).serialize()).toEqual({
+        expect((serialize(Symbol('test')))).toEqual({
             type: 'symbol',
             value: 'Symbol(test)',
         });
