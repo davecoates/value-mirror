@@ -1,14 +1,14 @@
 // @flow
 import type {
     UnserializableNumber,
-    NumberDescription,
-    StringDescription,
-    UndefinedDescription,
-    BooleanDescription,
-    SymbolDescription,
+    NumberDescriptor,
+    StringDescriptor,
+    UndefinedDescriptor,
+    BooleanDescriptor,
+    SymbolDescriptor,
 } from './types';
 
-export function serializeNumber(value: number) : NumberDescription {
+export function serializeNumber(value: number) : NumberDescriptor {
     let representation:number|UnserializableNumber = value;
 
     if (isNaN(value)) {
@@ -27,27 +27,27 @@ export function serializeNumber(value: number) : NumberDescription {
     };
 }
 
-export function serializeUndefined() : UndefinedDescription {
+export function serializeUndefined() : UndefinedDescriptor {
     return {
         type: 'undefined',
     };
 }
 
-export function serializeString(value: string) : StringDescription {
+export function serializeString(value: string) : StringDescriptor {
     return {
         type: 'string',
         value,
     };
 }
 
-export function serializeBoolean(value: boolean) : BooleanDescription {
+export function serializeBoolean(value: boolean) : BooleanDescriptor {
     return {
         type: 'boolean',
         value,
     };
 }
 
-export function serializeSymbol(value: Symbol) : SymbolDescription {
+export function serializeSymbol(value: Symbol) : SymbolDescriptor {
     return {
         type: 'symbol',
         value: value.toString(),

@@ -3,7 +3,7 @@
   "plugins": ["transform-flow-strip-types"],
   "env": {
     "test": {
-      "plugins": ["babel-plugin-rewire"]
+      "plugins": ["babel-plugin-rewire", "transform-runtime"]
     }
   }
 }

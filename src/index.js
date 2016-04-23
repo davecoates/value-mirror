@@ -1,5 +1,5 @@
 // @flow
-import type {ValueDescription, RemoteObjectId } from './types';
+import type { ObjectSerializer, ValueDescriptor, RemoteObjectId } from './types';
 import {
     serializeBoolean, serializeNumber, serializeString, serializeUndefined, serializeSymbol,
 } from './serializePrimitive';
@@ -20,7 +20,7 @@ function acquireObjectId(value:any) : RemoteObjectId {
     return objectId;
 }
 
-export default function serialize(value: any) : ValueDescription {
+export default function serialize(value: any, customObjectSerializer: ?ObjectSerializer = null) : ValueDescriptor {
     const type = typeof(value);
     if (type === 'boolean') {
         return serializeBoolean(value);
@@ -46,7 +46,7 @@ export default function serialize(value: any) : ValueDescription {
                 };
             }
         }
-        return serializeObject(value, acquireObjectId(value));
+        return serializeObject(value, acquireObjectId(value), customObjectSerializer);
     }
 
     throw new Error(`Unknown typeof value ${type}`);
