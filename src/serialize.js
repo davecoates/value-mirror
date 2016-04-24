@@ -1,24 +1,10 @@
 // @flow
-import type { ObjectSerializer, ValueDescriptor, RemoteObjectId } from './types';
+import type { ObjectSerializer, ValueDescriptor } from './types';
+import { acquireObjectId } from './remoteObject';
 import {
     serializeBoolean, serializeNumber, serializeString, serializeUndefined, serializeSymbol,
 } from './serializePrimitive';
 import serializeObject from './serializeObject';
-
-const valuesByObjectId = new Map();
-const objectIdByValue = new WeakMap();
-
-let nextObjectId = 1;
-
-function acquireObjectId(value:any) : RemoteObjectId {
-    if (objectIdByValue.has(value)) {
-        return objectIdByValue.get(value);
-    }
-    const objectId = nextObjectId++;
-    valuesByObjectId.set(objectId, value);
-    objectIdByValue.set(value, objectId);
-    return objectId;
-}
 
 export default function serialize(value: any, customObjectSerializer: ?ObjectSerializer = null) : ValueDescriptor {
     const type = typeof(value);

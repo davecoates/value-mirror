@@ -1,4 +1,4 @@
-import serialize, { __RewireAPI__ as serializeRewireAPI } from '../src';
+import serialize, { __RewireAPI__ as serializeRewireAPI } from '../src/serialize';
 import expect from 'expect';
 
 describe('Serialize (objects)', () => {
@@ -101,6 +101,7 @@ describe('Serialize (objects)', () => {
             subType: 'regexp',
             value: {
                 source: 'ab+c',
+                flags: '',
             },
         });
         expect(serialize(new RegExp('ab+c', 'i'))).toEqual({

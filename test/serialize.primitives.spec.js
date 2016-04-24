@@ -1,4 +1,4 @@
-import serialize from '../src';
+import serialize from '../src/serialize';
 import expect from 'expect';
 
 describe('Serialize (primitives)', () => {

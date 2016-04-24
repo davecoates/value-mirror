@@ -43,25 +43,20 @@ function serializeDate(value: Date, objectId: RemoteObjectId) : DateDescriptor {
 
 function serializeRegExp(value: RegExp, objectId: RemoteObjectId) : RegExpDescriptor {
     const { source } = value;
-    const desc:{source: string, flags?: string} = { source };
-    if (value.flags) {
-        desc.flags = value.flags;
-    } else {
-        // In node at least prototype.flags is never set; try construct from
-        // available boolean properties
-        const flags = [];
-        if (value.global) flags.push('g');
-        if (value.ignoreCase) flags.push('i');
-        if (value.multiline) flags.push('m');
-        if (flags.length) {
-            desc.flags = flags.join('');
-        }
-    }
+    // In node at least prototype.flags is never set; try construct from
+    // available boolean properties
+    const flags = [];
+    if (value.global) flags.push('g');
+    if (value.ignoreCase) flags.push('i');
+    if (value.multiline) flags.push('m');
     return {
         type: 'object',
         className: value.constructor.name,
         subType: 'regexp',
-        value: desc,
+        value: {
+            source,
+            flags: flags.join(''),
+        },
         objectId,
     };
 }

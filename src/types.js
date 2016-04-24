@@ -49,7 +49,7 @@ export type RegExpDescriptor = {
     objectId: RemoteObjectId;
     value: {
         source: string;
-        flags?: string;
+        flags: string;
     }
 }
 export type MapDescriptor = {
@@ -72,6 +72,11 @@ export type DateDescriptor = {
     subType: 'date';
     objectId: RemoteObjectId;
     value: number;
+}
+export type EntriesDescriptor = {
+    result: Iterable<any>,
+    done: boolean,
+    iteratorId: ?number,
 }
 export type ObjectDescriptor = NullDescriptor | PlainObjectDescriptor | ListDescriptor | IterableDescriptor | DateDescriptor | MapDescriptor | SetDescriptor | RegExpDescriptor;
 export type ObjectSerializer = (value: Object) => ObjectDescriptor | false;

@@ -1,4 +1,4 @@
-import serialize, { __RewireAPI__ as serializeRewireAPI } from '../src';
+import serialize, { __RewireAPI__ as serializeRewireAPI } from '../src/serialize';
 import expect from 'expect';
 import Immutable from 'immutable';
 
