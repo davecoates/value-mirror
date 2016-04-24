@@ -35,11 +35,14 @@ export default function getEntries(objectId: RemoteObjectId, iteratorId: ?number
     }
     const objectDescriptor = serialize(object);
     let totalEntries = null;
+    const limit = config.limit;
     if (objectDescriptor.size) {
         totalEntries = objectDescriptor.size;
+    } else if (!limit) {
+        // TODO: Alternatively just iterate to fixed 'safe' limit and throw?
+        throw new Error('Potentially infinite collection; you must specify a limit');
     }
 
-    const limit = config.limit;
     const it = acquireIterator(object, iteratorId);
     let n = it.next();
     const values = [];

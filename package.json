@@ -39,6 +39,7 @@
     "babel-preset-stage-0": "^6.3.13",
     "eslint": "^2.8.0",
     "eslint-config-airbnb": "7.0.0",
+    "eslint-plugin-flow-vars": "^0.3.0",
     "eslint-plugin-flowtype": "^2.2.6",
     "expect": "^1.18.0",
     "immutable": "^3.8.1",

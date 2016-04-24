@@ -8,22 +8,39 @@ import type {
     SymbolDescriptor,
 } from './types';
 
-export function serializeNumber(value: number) : NumberDescriptor {
-    let representation:number|UnserializableNumber = value;
-
+export function serializableNumberRepresentation(value: number, convertNegativeZero = true) : number|UnserializableNumber {
     if (isNaN(value)) {
-        representation = 'NaN';
+        return 'NaN';
     } else if (Infinity === value) {
-        representation = 'Infinity';
+        return 'Infinity';
     } else if (-Infinity === value) {
-        representation = '-Infinity';
+        return '-Infinity';
     } else if (value === -0) {
-        representation = '-0';
+        if (convertNegativeZero) {
+            return 0;
+        }
+        return '-0';
     }
 
+    return value;
+}
+
+export function unserializeNumber(value: number | string) : number {
+    if (typeof(value) == 'number') {
+        return value;
+    }
+    if (value === 'NaN') return NaN;
+    if (value === 'Infinity') return Infinity;
+    if (value === '-Infinity') return -Infinity;
+    if (value === '-0') return -0;
+
+    throw new Error(`Unknown string representation of number: ${value}`);
+}
+
+export function serializeNumber(value: number) : NumberDescriptor {
     return {
         type: 'number',
-        value: representation,
+        value: serializableNumberRepresentation(value, false),
     };
 }
 

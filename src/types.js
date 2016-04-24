@@ -30,7 +30,6 @@ export type PlainObjectDescriptor = {
 }
 export type IterableDescriptor = {
     type: 'object';
-    className: string;
     subType: 'iterable';
     objectId: RemoteObjectId;
     size?: number;

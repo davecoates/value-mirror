@@ -179,14 +179,14 @@ describe('Serialize (immutable)', () => {
             type: 'object',
             className: 'Seq',
             subType: 'iterable',
-            size: Infinity,
+            size: 'Infinity',
         });
         expect(serializeIm(Immutable.Range())).toEqual({
             objectId: 'test',
             type: 'object',
             className: 'Seq',
             subType: 'iterable',
-            size: Infinity,
+            size: 'Infinity',
         });
         expect(serializeIm(Immutable.Repeat(0, 5))).toEqual({
             objectId: 'test',

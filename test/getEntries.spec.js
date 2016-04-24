@@ -26,4 +26,47 @@ describe('Get entries', () => {
             done: true,
         });
     });
+
+    it('should get entries from map (partial)', () => {
+        const items = new Map(Array.from({ length: 4 }, (v, k) => [k, k.toString()]));
+        const serialized = serialize(items);
+        const entries = getEntries(serialized.objectId, null, { limit: 2 });
+        expect(entries).toEqual({
+            result: [[0, '0'], [1, '1']],
+            done: false,
+            iteratorId: 0,
+        });
+        expect(getEntries(serialized.objectId, entries.iteratorId, { limit: 2 })).toEqual({
+            result: [[2, '2'], [3, '3']],
+            done: true,
+        });
+    });
+
+    it('should get entries from infinite generator', () => {
+        const items = (function *gen() {
+            let i = 0;
+            while(1) { // eslint-disable-line
+                yield i++;
+            }
+        })();
+        const serialized = serialize(items);
+        const entries = getEntries(serialized.objectId, null, { limit: 2 });
+        expect(entries).toEqual({
+            result: [0, 1],
+            done: false,
+            iteratorId: 0,
+        });
+        expect(getEntries(serialized.objectId, entries.iteratorId, { limit: 2 })).toEqual({
+            result: [2, 3],
+            done: false,
+            iteratorId: 0,
+        });
+        expect(getEntries(serialized.objectId, entries.iteratorId, { limit: 200 })).toEqual({
+            result: Array.from({ length: 200 }, (v, k) => k + 4),
+            done: false,
+            iteratorId: 0,
+        });
+
+        expect(() => getEntries(serialized.objectId, entries.iteratorId)).toThrow();
+    });
 });

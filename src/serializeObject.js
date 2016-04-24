@@ -1,5 +1,6 @@
 // @flow
 import type { IterableDescriptor, MapDescriptor, SetDescriptor, DateDescriptor, RegExpDescriptor, ObjectSerializer, ObjectDescriptor, RemoteObjectId } from './types';
+import { serializableNumberRepresentation } from './serializePrimitive';
 
 function serializeArray(value: any[], objectId: RemoteObjectId) : ObjectDescriptor {
     return {
@@ -17,7 +18,7 @@ function serializeMap(value: Map, objectId: RemoteObjectId) : MapDescriptor {
         className: value.constructor.name,
         subType: 'map',
         objectId,
-        size: value.size,
+        size: serializableNumberRepresentation(value.size),
     };
 }
 
@@ -27,7 +28,7 @@ function serializeSet(value: Set, objectId: RemoteObjectId) : SetDescriptor {
         className: value.constructor.name,
         subType: 'set',
         objectId,
-        size: value.size,
+        size: serializableNumberRepresentation(value.size),
     };
 }
 
@@ -69,11 +70,18 @@ function serializeIterable(value: Object, objectId: RemoteObjectId) : IterableDe
     };
 }
 
+function ensureJsonSerializable(object) {
+    if (object.size) {
+        object.size = serializableNumberRepresentation(object.size);
+    }
+    return object;
+}
+
 export default function serializeObject(value: Object, objectId: RemoteObjectId, customObjectSerializer: ?ObjectSerializer = null) : ObjectDescriptor {
     if (customObjectSerializer) {
         const result = customObjectSerializer(value, objectId);
         if (result) {
-            return result;
+            return ensureJsonSerializable(result);
         }
     }
     if (Array.isArray(value)) {
