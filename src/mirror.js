@@ -1,7 +1,7 @@
 import { unserializeNumber } from './serializePrimitive';
 
 export const $mirrorMeta = Symbol('MirrorMeta');
-export const $mirrorEntriesFetched = Symbol('mirrorEntriesFetched');
+export const $mirrorEntriesFetched = Symbol('MirrorEntriesFetched');
 
 const valueByObjectId = new Map();
 // TODO:

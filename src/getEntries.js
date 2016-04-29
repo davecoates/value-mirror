@@ -25,7 +25,11 @@ function acquireIterator(object: Object, iteratorId) : Iterator<any> {
     return object[Symbol.iterator]();
 }
 
-export default function getEntries(objectId: RemoteObjectId, iteratorId: ?number = null, config:GetEntriesConfig = {}) : EntriesDescriptor {
+export default function getEntries(
+    objectId: RemoteObjectId,
+    iteratorId: ?number = null,
+    config:GetEntriesConfig = {}
+) : EntriesDescriptor {
     const object = getObject(objectId);
     if (!object) {
         throw new Error('Object does not exist');
