@@ -1,4 +1,4 @@
-import serialize, { __RewireAPI__ as serializeRewireAPI } from '../src/serialize';
+import serialize, { registerObjectSerializer, __RewireAPI__ as serializeRewireAPI } from '../src/serialize';
 import expect from 'expect';
 import Immutable from 'immutable';
 
@@ -49,6 +49,8 @@ function immutableSerializer(value, objectId) {
         };
     }
 }
+
+registerObjectSerializer(immutableSerializer);
 
 const serializeIm = (value) => serialize(value, immutableSerializer);
 

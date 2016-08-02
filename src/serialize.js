@@ -5,8 +5,25 @@ import {
     serializeBoolean, serializeNumber, serializeString, serializeUndefined, serializeSymbol,
 } from './serializePrimitive';
 import serializeObject from './serializeObject';
+import serializeFunction from './serializeFunction';
 
-export default function serialize(value: any, customObjectSerializer: ?ObjectSerializer = null) : ValueDescriptor {
+let customObjectSerializer:?ObjectSerializer = null;
+export function registerObjectSerializer(fn: ObjectSerializer) {
+    if (customObjectSerializer != null) {
+        const existingSerializer = customObjectSerializer;
+        customObjectSerializer = (value:Object) => {
+            const result = !existingSerializer(value);
+            if (result) {
+                return result;
+            }
+            return fn(value);
+        };
+    } else {
+        customObjectSerializer = fn;
+    }
+}
+
+export default function serialize(value: any) : ValueDescriptor {
     const type = typeof(value);
     if (type === 'boolean') {
         return serializeBoolean(value);
@@ -27,12 +44,14 @@ export default function serialize(value: any, customObjectSerializer: ?ObjectSer
         if (value === null) {
             if (value === null) {
                 return {
-                    type: 'object',
-                    subType: 'null',
+                    type: 'null',
                 };
             }
         }
         return serializeObject(value, acquireObjectId(value), customObjectSerializer);
+    }
+    if (typeof(value) == 'function') {
+        return serializeFunction(value);
     }
 
     throw new Error(`Unknown typeof value ${type}`);

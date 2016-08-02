@@ -21,25 +21,26 @@ export type SymbolDescriptor = {
 }
 export type RemoteObjectId = number;
 export type NullDescriptor = {
-    type: 'object';
-    subType: 'null';
+    type: 'null';
 };
 export type PlainObjectDescriptor = {
     type: 'object';
+    subType: null;
     objectId: RemoteObjectId;
+    size?: null;
 }
 export type IterableDescriptor = {
     type: 'object';
     subType: 'iterable';
     objectId: RemoteObjectId;
-    size?: number;
+    size?: number|UnserializableNumber;
 }
 export type ListDescriptor = {
     type: 'object';
     className: string;
     subType: 'list';
     objectId: RemoteObjectId;
-    size: number;
+    size: number|UnserializableNumber;
 }
 export type RegExpDescriptor = {
     type: 'object';
@@ -49,21 +50,22 @@ export type RegExpDescriptor = {
     value: {
         source: string;
         flags: string;
-    }
+    };
+    size?: null;
 }
 export type MapDescriptor = {
     type: 'object';
     className: string;
     subType: 'map';
     objectId: RemoteObjectId;
-    size: number;
+    size: number|UnserializableNumber;
 }
 export type SetDescriptor = {
     type: 'object';
     className: string;
     subType: 'set';
     objectId: RemoteObjectId;
-    size: number;
+    size: number|UnserializableNumber;
 }
 export type DateDescriptor = {
     type: 'object';
@@ -71,13 +73,19 @@ export type DateDescriptor = {
     subType: 'date';
     objectId: RemoteObjectId;
     value: number;
+    size?: null;
 }
 export type EntriesDescriptor = {
-    result: Iterable<any>,
+    result: [any],
     done: boolean,
     iteratorId: ?number,
 }
-export type ObjectDescriptor = NullDescriptor | PlainObjectDescriptor | ListDescriptor | IterableDescriptor | DateDescriptor | MapDescriptor | SetDescriptor | RegExpDescriptor;
+export type FunctionDescriptor = {
+    type: 'function';
+    name: string;
+}
+export type ObjectDescriptor = PlainObjectDescriptor | ListDescriptor | IterableDescriptor | DateDescriptor | MapDescriptor | SetDescriptor | RegExpDescriptor;
 export type ObjectSerializer = (value: Object) => ObjectDescriptor | false;
-export type ValueDescriptor = (NumberDescriptor | UndefinedDescriptor | BooleanDescriptor | StringDescriptor | SymbolDescriptor | ObjectDescriptor);
+export type FunctionSerializer = (value: Function) => FunctionDescriptor;
+export type ValueDescriptor = (NullDescriptor | NumberDescriptor | UndefinedDescriptor | BooleanDescriptor | StringDescriptor | SymbolDescriptor | ObjectDescriptor);
 export type Serializer = (value: any) => ValueDescriptor;

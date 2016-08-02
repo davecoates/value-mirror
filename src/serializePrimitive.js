@@ -8,7 +8,7 @@ import type {
     SymbolDescriptor,
 } from './types';
 
-export function serializableNumberRepresentation(value: number, convertNegativeZero = true) : number|UnserializableNumber {
+export function serializableNumberRepresentation(value: number, convertNegativeZero:boolean = true) : number|UnserializableNumber {
     if (isNaN(value)) {
         return 'NaN';
     } else if (Infinity === value) {

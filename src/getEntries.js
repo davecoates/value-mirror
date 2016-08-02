@@ -1,28 +1,28 @@
 // @flow
-import type { EntriesDescriptor, RemoteObjectId } from './types';
+import type { ValueDescriptor, EntriesDescriptor, RemoteObjectId } from './types';
 import { getObject } from './remoteObject';
 import serialize from './serialize';
 
-type GetEntriesConfig = {
+export type GetEntriesConfig = {
     limit?: number;
 }
 
 type ObjectIteratorDescriptor = {
-    iterator: Iterator;
+    iterator: Iterator<*>;
     consumedCount: number;
 }
 
 type ObjectIterators = Map<number, ObjectIteratorDescriptor>;
 const iteratorsByObject:WeakMap<Object, ObjectIterators> = new WeakMap();
 
-function acquireIterator(object: Object, iteratorId) : Iterator<any> {
+function acquireIterator(object: Object, iteratorId) : [boolean, Iterator<any>] {
     if (iteratorId != null && iteratorsByObject.has(object)) {
         const iteratorDescriptor = iteratorsByObject.get(object).get(iteratorId);
         if (iteratorDescriptor) {
-            return iteratorDescriptor.iterator;
+            return [false, iteratorDescriptor.iterator];
         }
     }
-    return object[Symbol.iterator]();
+    return [true, object[Symbol.iterator]()];
 }
 
 export default function getEntries(
@@ -38,20 +38,38 @@ export default function getEntries(
         throw new Error('Object is not iterable');
     }
     const objectDescriptor = serialize(object);
+    if (objectDescriptor.type != 'object') {
+        throw new Error('Invalid object found; was not serialized to expected type');
+    }
     let totalEntries = null;
     const limit = config.limit;
-    if (objectDescriptor.size) {
+    let size;
+    // This it to appease flow - doing it in one condition below didn't work
+    if (objectDescriptor.size != null) {
+        size = objectDescriptor.size 
+    }
+    if (size !== "Infinity") {
         totalEntries = objectDescriptor.size;
     } else if (!limit) {
         // TODO: Alternatively just iterate to fixed 'safe' limit and throw?
         throw new Error('Potentially infinite collection; you must specify a limit');
     }
 
-    const it = acquireIterator(object, iteratorId);
+    const [isNewIterator, it] = acquireIterator(object, iteratorId);
     let n = it.next();
     const values = [];
     while (!n.done) {
-        values.push(n.value);
+        let subType = null;
+        // This is to appease flow - doing it in one condition below didn't
+        // work for some reason
+        if (objectDescriptor.subType != null) {
+            subType = objectDescriptor.subType;
+        }
+        if (subType == 'map') {
+            values.push([serialize(n.value[0]), serialize(n.value[1])]);
+        } else {
+            values.push(serialize(n.value));
+        }
         if (limit && values.length >= limit) {
             break;
         }
@@ -85,6 +103,8 @@ export default function getEntries(
     }
 
     return {
+        objectId,
+        isNewIterator,
         result: values,
         done,
         ...iteratorData,

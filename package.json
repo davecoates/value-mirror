@@ -6,6 +6,7 @@
   "scripts": {
     "clean": "rimraf lib dist",
     "build": "babel src --out-dir lib",
+    "build:watch": "babel src --out-dir lib --watch --source-map=inline",
     "build:umd": "webpack src/index.js dist/value-mirror.js && NODE_ENV=production webpack src/index.js dist/value-mirror.min.js",
     "lint": "eslint src test examples",
     "test": "NODE_ENV=test mocha",
@@ -51,6 +52,7 @@
   },
   "dependencies": {
     "invariant": "^2.2.0",
-    "lodash.isobject": "^3.0.2"
+    "lodash.isobject": "^3.0.2",
+    "ws": "^1.1.0"
   }
 }

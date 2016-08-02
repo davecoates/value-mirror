@@ -4,8 +4,7 @@ import expect from 'expect';
 describe('Serialize (objects)', () => {
     it('should serialize null', () => {
         expect(serialize(null)).toEqual({
-            type: 'object',
-            subType: 'null',
+            type: 'null',
         });
     });
 
@@ -14,10 +13,12 @@ describe('Serialize (objects)', () => {
         expect(serialize({})).toEqual({
             objectId: 'test',
             type: 'object',
+            subType: null,
         });
         expect(serialize({ test: 123 })).toEqual({
             objectId: 'test',
             type: 'object',
+            subType: null,
         });
         serializeRewireAPI.__ResetDependency__('acquireObjectId');
     });
