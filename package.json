@@ -1,7 +1,7 @@
 {
   "name": "value-mirror",
   "version": "0.0.1",
-  "description": "value-mirror-description",
+  "description": "Mirror values for inspection",
   "main": "lib/index.js",
   "scripts": {
     "clean": "rimraf lib dist",
@@ -52,7 +52,6 @@
   },
   "dependencies": {
     "invariant": "^2.2.0",
-    "lodash.isobject": "^3.0.2",
-    "ws": "^1.1.0"
+    "lodash.isobject": "^3.0.2"
   }
 }
