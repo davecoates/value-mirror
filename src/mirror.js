@@ -1,7 +1,9 @@
 // @flow
+/* eslint-disable no-use-before-define */
 import { unserializeNumber } from './serializePrimitive';
-import { getObject } from './remoteObject';
-import type { RemoteObjectId, EntriesDescriptor, PlainObjectDescriptor, ValueDescriptor, ObjectDescriptor } from './types';
+import type {
+    ObjectPropertyDescriptor, RemoteObjectId, EntriesDescriptor, ValueDescriptor,
+} from './types';
 import type { GetEntriesConfig } from './getEntries';
 
 export const $mirrorMeta = Symbol('MirrorMeta');
@@ -15,7 +17,7 @@ interface MirrorClient {
         iteratorId: ?number,
         config:GetEntriesConfig
     ) => Promise<EntriesDescriptor>;
-    getProperties: (objectId:number) => Promise<[any]>;
+    getProperties: (objectId:number) => Promise<Array<ObjectPropertyDescriptor>>;
 }
 
 class Mirror {
@@ -45,17 +47,19 @@ export class ObjectMirror extends Mirror {
 
     constructor(data:ValueDescriptor, client:MirrorClient) {
         super(data, client);
-        if (data.type != 'object' || data.objectId == null) {
+        if (data.type !== 'object' || data.objectId == null) {
             throw new Error('ObjectMirror initialised with wrong type: ' + data.type);
         }
         this.objectId = data.objectId;
     }
 
-    async getProperties() {
-        const properties = await this.client.getProperties(this.objectId);
-        this.properties = properties.map(([key, value, isRecursive]) => ({
-            key, value: buildMirror(value, this.client), isRecursive
-        }));
+    getProperties() : Promise<Array<ObjectPropertyDescriptor>> {
+        return this.client.getProperties(this.objectId).then(properties => {
+            this.properties = properties.map(({ key, value, isRecursive }) => ({
+                key, value: buildMirror(value, this.client), isRecursive,
+            }));
+            return properties;
+        });
     }
 
 }
@@ -73,18 +77,20 @@ class CollectionMirror extends ObjectMirror {
         }
     }
 
-    async getEntries(config = {}) : Promise<void> {
+    getEntries(config = {}) : Promise<EntriesDescriptor> {
         if (this.allEntriesFetched) {
-            throw new Error('All entries fetched');
+            return Promise.reject('All entries fetched');
         }
-        const payload = await this.client.getEntries(this.objectId, this.iteratorId, config);
-        const { result, done, iteratorId } = payload;
-        this.iteratorId = iteratorId;
-        this.allEntriesFetched = done;
-        this.addEntries(result);
+        return this.client.getEntries(this.objectId, this.iteratorId, config).then(payload => {
+            const { result, done, iteratorId } = payload;
+            this.iteratorId = iteratorId;
+            this.allEntriesFetched = done;
+            this.addEntries(result);
+            return payload;
+        });
     }
 
-    addEntries(entries:[any]) {
+    addEntries(entries:[any]) { // eslint-disable-line no-unused-vars
         throw new Error('Not implemented; you must implement addEntries for Collectionmirror');
     }
 

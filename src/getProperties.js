@@ -1,9 +1,9 @@
 // @flow
-import type { EntriesDescriptor, RemoteObjectId } from './types';
+import type { RemoteObjectId, ObjectPropertyDescriptor } from './types';
 import { getObject } from './remoteObject';
 import serialize from './serialize';
 
-export default function getProperties(objectId: RemoteObjectId) {
+export default function getProperties(objectId: RemoteObjectId) : Array<ObjectPropertyDescriptor> {
     const object = getObject(objectId);
     if (!object) {
         throw new Error('Object does not exist');
@@ -11,13 +11,13 @@ export default function getProperties(objectId: RemoteObjectId) {
 
     const properties = [];
     const obj = getObject(objectId);
-    for (const p in obj) {
-        const serialized = serialize(obj[p]);
-        let recursive = false;
-        if (serialized.type == 'object' && serialized.objectId != null) {
-            recursive = serialized.objectId === objectId;
+    for (const key in obj) {
+        const value = serialize(obj[key]);
+        let isRecursive = false;
+        if (value.type === 'object' && value.objectId != null) {
+            isRecursive = value.objectId === objectId;
         }
-        properties.push([p, serialized, recursive]);
+        properties.push({ key, value, isRecursive });
     }
     return properties;
 }

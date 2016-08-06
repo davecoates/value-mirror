@@ -1,5 +1,5 @@
 // @flow
-import type { ValueDescriptor, EntriesDescriptor, RemoteObjectId } from './types';
+import type { ValueDescriptor, EntriesValueDescriptor, EntriesDescriptor, RemoteObjectId } from './types';
 import { getObject } from './remoteObject';
 import serialize from './serialize';
 
@@ -46,9 +46,9 @@ export default function getEntries(
     let size;
     // This it to appease flow - doing it in one condition below didn't work
     if (objectDescriptor.size != null) {
-        size = objectDescriptor.size 
+        size = objectDescriptor.size;
     }
-    if (size !== "Infinity") {
+    if (size !== 'Infinity') {
         totalEntries = objectDescriptor.size;
     } else if (!limit) {
         // TODO: Alternatively just iterate to fixed 'safe' limit and throw?
@@ -58,6 +58,7 @@ export default function getEntries(
     const [isNewIterator, it] = acquireIterator(object, iteratorId);
     let n = it.next();
     const values = [];
+
     while (!n.done) {
         let subType = null;
         // This is to appease flow - doing it in one condition below didn't
@@ -65,7 +66,7 @@ export default function getEntries(
         if (objectDescriptor.subType != null) {
             subType = objectDescriptor.subType;
         }
-        if (subType == 'map') {
+        if (subType === 'map') {
             values.push([serialize(n.value[0]), serialize(n.value[1])]);
         } else {
             values.push(serialize(n.value));

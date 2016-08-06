@@ -75,11 +75,6 @@ export type DateDescriptor = {
     value: number;
     size?: null;
 }
-export type EntriesDescriptor = {
-    result: [any],
-    done: boolean,
-    iteratorId: ?number,
-}
 export type FunctionDescriptor = {
     type: 'function';
     name: string;
@@ -89,3 +84,16 @@ export type ObjectSerializer = (value: Object) => ObjectDescriptor | false;
 export type FunctionSerializer = (value: Function) => FunctionDescriptor;
 export type ValueDescriptor = (NullDescriptor | NumberDescriptor | UndefinedDescriptor | BooleanDescriptor | StringDescriptor | SymbolDescriptor | ObjectDescriptor);
 export type Serializer = (value: any) => ValueDescriptor;
+
+export type ObjectPropertyDescriptor = {
+    key: string;
+    value: ValueDescriptor;
+    isRecursive: boolean;
+};
+// Entries is either a single value (eg. list, set), or a key/value pair (eg. map)
+export type EntriesValueDescriptor = ValueDescriptor | [ValueDescriptor, ValueDescriptor];
+export type EntriesDescriptor = {
+    result: Array<EntriesValueDescriptor>,
+    done: boolean,
+    iteratorId: ?number,
+}
