@@ -34,15 +34,17 @@ class Mirror {
 
 }
 
+type MirrorType = boolean | string | null | number | Mirror;
+
 type ObjectProperty = {
     key:string;
-    value:any;
+    value:?MirrorType;
     isRecursive:boolean;
 }
 
 export class ObjectMirror extends Mirror {
 
-    properties:[ObjectProperty]
+    properties:Array<ObjectProperty>;
     objectId:RemoteObjectId;
 
     constructor(data:ValueDescriptor, client:MirrorClient) {
@@ -145,13 +147,8 @@ export class FunctionMirror extends Mirror {
 export class SymbolMirror extends Mirror {
 }
 
-export default function buildMirror(data:ValueDescriptor|string, client:MirrorClient) {
-    let serializedRepresentation:ValueDescriptor;
-    if (typeof(data) == 'string') {
-        serializedRepresentation = JSON.parse(data);
-    } else {
-        serializedRepresentation = data;
-    }
+export default function buildMirror(data:ValueDescriptor, client:MirrorClient) : ?MirrorType {
+    const serializedRepresentation:ValueDescriptor = data;
     switch (serializedRepresentation.type) {
         case 'number':
             return unserializeNumber(serializedRepresentation.value);
