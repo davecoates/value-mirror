@@ -1,7 +1,25 @@
 import serialize from '../src/serialize';
 import getEntries from '../src/getEntries';
-import mirror, { $mirrorEntriesFetched } from '../src/mirror';
+import mirror from '../src/mirror';
 import expect from 'expect';
+
+class DefaultClient {
+
+    getEntries(objectId, iteratorId, config) {
+        const entries = getEntries(
+            objectId,
+            iteratorId,
+            config
+        );
+        return Promise.resolve(entries);
+    }
+
+    getProperties(objectId) {
+        const properties = getProperties(objectId);
+        return Promise.resolve(properties);
+    }
+
+}
 
 function takeAll(iterator) {
     const values = [];
@@ -11,7 +29,7 @@ function takeAll(iterator) {
     return values;
 }
 
-const client = {};
+const client = new DefaultClient();
 
 describe('Mirror primitives', () => {
     it('should handle numbers', () => {
@@ -51,15 +69,17 @@ describe('Mirror objects', () => {
         // expect(emptyArray).toEqual([]);
     });
 
-    it('should serialize map', () => {
-        /*
+    it('should serialize map', (done) => {
         const entries = [[1, 'one'], [2, 'two'], [3, 'three']];
         const serialized = serialize(new Map(entries));
-        const items = mirror(serialized);
-        expect(takeAll(items.entries())).toEqual([]);
-        items[$mirrorEntriesFetched](getEntries(serialized.objectId));
-        expect(takeAll(items.entries())).toEqual(entries);
-        */
+        const items = mirror(serialized, client);
+        expect(items.allEntriesFetched).toEqual(false);
+        expect(items.entriesFetched).toEqual(0);
+        items.getEntries().then(() => {
+            expect(items.entriesFetched).toEqual(3);
+            expect(items.allEntriesFetched).toEqual(true);
+            done();
+        }).catch(error => done(error));
     });
 
     it('should serialize set', () => {});
