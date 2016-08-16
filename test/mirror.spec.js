@@ -74,9 +74,9 @@ describe('Mirror objects', () => {
         const serialized = serialize(new Map(entries));
         const items = mirror(serialized, client);
         expect(items.allEntriesFetched).toEqual(false);
-        expect(items.entriesFetched).toEqual(0);
+        expect(items.fetchedCount()).toEqual(0);
         items.getEntries().then(() => {
-            expect(items.entriesFetched).toEqual(3);
+            expect(items.fetchedCount()).toEqual(3);
             expect(items.allEntriesFetched).toEqual(true);
             done();
         }).catch(error => done(error));

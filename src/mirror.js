@@ -6,9 +6,6 @@ import type {
 } from './types';
 import type { GetEntriesConfig } from './getEntries';
 
-export const $mirrorMeta = Symbol('MirrorMeta');
-export const $mirrorEntriesFetched = Symbol('MirrorEntriesFetched');
-
 const valueByObjectId = new Map();
 
 interface MirrorClient {
@@ -69,7 +66,6 @@ export class ObjectMirror extends Mirror {
 class CollectionMirror extends ObjectMirror {
 
     allEntriesFetched = false;
-    entriesFetched:number = 0;
     size:?number;
     iteratorId:?number;
 
@@ -86,7 +82,6 @@ class CollectionMirror extends ObjectMirror {
         }
         return this.client.getEntries(this.objectId, this.iteratorId, config).then(payload => {
             const { result, done, iteratorId } = payload;
-            this.entriesFetched += result.length;
             this.iteratorId = iteratorId;
             this.allEntriesFetched = done;
             this.addEntries(result);
