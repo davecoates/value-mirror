@@ -49,7 +49,7 @@ export type RegExpDescriptor = {
     objectId: RemoteObjectId;
     value: {
         source: string;
-        flags: string;
+        flags: Array<string>;
     };
     size?: null;
 }
@@ -79,10 +79,24 @@ export type FunctionDescriptor = {
     type: 'function';
     name: string;
 }
-export type ObjectDescriptor = PlainObjectDescriptor | ListDescriptor | IterableDescriptor | DateDescriptor | MapDescriptor | SetDescriptor | RegExpDescriptor;
+export type ObjectDescriptor =
+    | PlainObjectDescriptor
+    | ListDescriptor
+    | IterableDescriptor
+    | DateDescriptor
+    | MapDescriptor
+    | SetDescriptor
+    | RegExpDescriptor;
 export type ObjectSerializer = (value: Object) => ObjectDescriptor | false;
 export type FunctionSerializer = (value: Function) => FunctionDescriptor;
-export type ValueDescriptor = (NullDescriptor | NumberDescriptor | UndefinedDescriptor | BooleanDescriptor | StringDescriptor | SymbolDescriptor | ObjectDescriptor);
+export type ValueDescriptor =
+    | NullDescriptor
+    | NumberDescriptor
+    | UndefinedDescriptor
+    | BooleanDescriptor
+    | StringDescriptor
+    | SymbolDescriptor
+    | ObjectDescriptor;
 export type Serializer = (value: any) => ValueDescriptor;
 
 export type ObjectPropertyDescriptor = {

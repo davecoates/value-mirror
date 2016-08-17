@@ -1,7 +1,8 @@
 import serialize from '../src/serialize';
 import getEntries from '../src/getEntries';
-import mirror from '../src/mirror';
-import expect from 'expect';
+import getProperties from '../src/getProperties';
+import buildMirror, { ObjectMirror } from '../src/mirror';
+import test from 'ava';
 
 class DefaultClient {
 
@@ -31,62 +32,171 @@ function takeAll(iterator) {
 
 const client = new DefaultClient();
 
-describe('Mirror primitives', () => {
-    it('should handle numbers', () => {
-        for (const n of [-10, 0, 1, -0, Infinity, -Infinity]) {
-            expect(mirror(serialize(n), client)).toEqual(n);
-        }
-    });
-    it('should handle strings', () => {
-        for (const n of ['', 'abc', '     def']) {
-            expect(mirror(serialize(n), client)).toEqual(n);
-        }
-    });
-    it('should handle booleans', () => {
-        expect(mirror(serialize(true), client)).toEqual(true);
-        expect(mirror(serialize(false), client)).toEqual(false);
-    });
-    it('should handle undefined', () => {
-        expect(mirror(serialize(undefined), client)).toEqual(undefined);
-    });
-    it('should handle symbols', () => {
-        // TODO: No idea what I should be doing here
-    });
+test('should handle numbers', t => {
+    for (const n of [-10, 0, 1, -0, Infinity, -Infinity]) {
+        t.is(buildMirror(serialize(n), client), n);
+    }
+});
+test('should handle strings', t => {
+    for (const n of ['', 'abc', '     def']) {
+        t.is(buildMirror(serialize(n), client), n);
+    }
+});
+test('should handle booleans', t => {
+    t.is(buildMirror(serialize(true), client), true);
+    t.is(buildMirror(serialize(false), client), false);
+});
+test('should handle undefined', t => {
+    t.is(buildMirror(serialize(undefined), client), undefined);
+});
+test('should handle symbols', t => {
+    const mirror = buildMirror(serialize(Symbol.for('test')), client);
+    t.is(mirror.type, 'symbol');
 });
 
-describe('Mirror objects', () => {
-    it('should serialize null', () => {
-        // expect(mirror(serialize(null), client)).toEqual(null);
-    });
+test('should serialize null', t => {
+    t.is(buildMirror(serialize(null), client), null);
+});
 
-    it('should serialize plain object', () => {
-        // expect(mirror(serialize({}), client)).toEqual({});
-        // expect(mirror(serialize({ test: 123 }), client)).toEqual({});
-    });
+test('should serialize plain object', async (t) => {
+    let mirror = buildMirror(serialize({}), client);
+    t.is(mirror.type, 'object');
+    t.falsy(mirror.subType);
+    t.falsy(mirror.properties);
+    await mirror.getProperties();
+    t.deepEqual(mirror.properties, []);
 
-    it('should serialize list', () => {
-        const emptyArray = mirror(serialize([], client));
-        // expect(emptyArray).toEqual([]);
-    });
+    mirror = buildMirror(serialize({ test: 123 }), client);
+    t.is(mirror.type, 'object');
+    t.falsy(mirror.subType);
+    t.falsy(mirror.properties);
+    await mirror.getProperties();
+    t.deepEqual(mirror.properties, [{ key: 'test', value: 123, isRecursive: false }]);
+});
 
-    it('should serialize map', (done) => {
-        const entries = [[1, 'one'], [2, 'two'], [3, 'three']];
-        const serialized = serialize(new Map(entries));
-        const items = mirror(serialized, client);
-        expect(items.allEntriesFetched).toEqual(false);
-        expect(items.fetchedCount()).toEqual(0);
-        items.getEntries().then(() => {
-            expect(items.fetchedCount()).toEqual(3);
-            expect(items.allEntriesFetched).toEqual(true);
-            done();
-        }).catch(error => done(error));
-    });
+test('should serialize plain object with recursive references', async (t) => {
+    const data = { test: 123 };
+    data.myself = data;
+    const mirror = buildMirror(serialize(data), client);
+    t.is(mirror.type, 'object');
+    t.falsy(mirror.subType);
+    t.falsy(mirror.properties);
+    await mirror.getProperties();
+    t.truthy(mirror.properties);
+    t.is(mirror.properties.length, 2);
+    t.deepEqual(mirror.properties[0], { key: 'test', value: 123, isRecursive: false });
+    t.is(mirror.properties[1].key, 'myself');
+    t.true(mirror.properties[1].isRecursive);
+    t.true(mirror.properties[1].value instanceof ObjectMirror);
+});
 
-    it('should serialize set', () => {});
+test('should mirror a list', async (t) => {
+    const emptyArray = buildMirror(serialize([]), client);
+    t.is(emptyArray.type, 'object');
+    t.is(emptyArray.subType, 'list');
+    t.is(emptyArray.fetchedCount(), 0);
+    t.is(emptyArray.size, 0);
+    t.true(emptyArray.allEntriesFetched);
+    const value = [1, 2, 3, 4, 5];
+    const mirror = buildMirror(serialize(value), client);
+    t.is(mirror.type, 'object');
+    t.is(mirror.subType, 'list');
+    t.is(mirror.fetchedCount(), 0);
+    t.is(mirror.size, 5);
+    t.false(mirror.allEntriesFetched);
+    await mirror.getEntries({ limit: 2 });
+    t.is(mirror.fetchedCount(), 2);
+    t.is(mirror.size, 5);
+    t.false(mirror.allEntriesFetched);
+    await mirror.getEntries({ limit: 2 });
+    t.is(mirror.fetchedCount(), 4);
+    t.is(mirror.size, 5);
+    t.false(mirror.allEntriesFetched);
+    await mirror.getEntries({ limit: 2 });
+    t.is(mirror.fetchedCount(), 5);
+    t.is(mirror.size, 5);
+    t.true(mirror.allEntriesFetched);
+    t.deepEqual(mirror.value, value);
+});
 
-    it('should serialize date', () => {});
+test('should serialize map', async (t) => {
+    const entries = [[1, 'one'], [2, 'two'], [3, 'three']];
+    const serialized = serialize(new Map(entries));
+    const mirror = buildMirror(serialized, client);
+    t.is(mirror.type, 'object');
+    t.is(mirror.subType, 'map');
+    t.is(mirror.size, 3);
+    t.false(mirror.allEntriesFetched);
+    t.is(mirror.fetchedCount(), 0);
+    await mirror.getEntries({ limit: 2 });
+    t.is(mirror.size, 3);
+    t.is(mirror.fetchedCount(), 2);
+    t.false(mirror.allEntriesFetched);
+    await mirror.getEntries({ limit: 2 });
+    t.is(mirror.size, 3);
+    t.is(mirror.fetchedCount(), 3);
+    t.true(mirror.allEntriesFetched);
+    t.deepEqual([...mirror.value.entries()], entries);
+});
 
-    it('should serialize regexp', () => {});
+test('should serialize set', async (t) => {
+    const entries = [1, 2, 3, 4, 5];
+    const serialized = serialize(new Set(entries));
+    const mirror = buildMirror(serialized, client);
+    t.is(mirror.type, 'object');
+    t.is(mirror.subType, 'set');
+    t.is(mirror.size, 5);
+    t.false(mirror.allEntriesFetched);
+    t.is(mirror.fetchedCount(), 0);
+    await mirror.getEntries({ limit: 2 });
+    t.is(mirror.size, 5);
+    t.is(mirror.fetchedCount(), 2);
+    t.false(mirror.allEntriesFetched);
+    await mirror.getEntries({ limit: 2 });
+    t.is(mirror.size, 5);
+    t.is(mirror.fetchedCount(), 4);
+    t.false(mirror.allEntriesFetched);
+    await mirror.getEntries({ limit: 2 });
+    t.is(mirror.size, 5);
+    t.is(mirror.fetchedCount(), 5);
+    t.true(mirror.allEntriesFetched);
+    t.deepEqual([...mirror.value.values()], entries);
+});
 
-    it('should serialize iterator', () => {});
+test('should serialize date', t => {
+    const d = new Date();
+    const mirror = buildMirror(serialize(d), client);
+    t.is(mirror.type, 'object');
+    t.is(mirror.subType, 'date');
+    t.is(mirror.value, d.getTime());
+});
+
+test('should serialize regexp', t => {
+    const r = new RegExp(/[a-z]*/, 'ig');
+    const mirror = buildMirror(serialize(r), client);
+    t.is(mirror.type, 'object');
+    t.is(mirror.subType, 'regexp');
+    t.deepEqual([...mirror.flags].sort(), ['g', 'i']);
+});
+
+test('should serialize iterator', async (t) => {
+    function* gen() {
+        yield 1;
+        yield 2;
+        yield 3;
+    }
+    const mirror = buildMirror(serialize(gen()), client);
+    t.is(mirror.type, 'object');
+    t.is(mirror.subType, 'iterable');
+    t.falsy(mirror.size);
+    t.false(mirror.allEntriesFetched);
+    t.throws(() => mirror.getEntries());
+    await mirror.getEntries({ limit: 2 });
+    t.falsy(mirror.size);
+    t.false(mirror.allEntriesFetched);
+    t.deepEqual(mirror.value, [1, 2]);
+    await mirror.getEntries({ limit: 2 });
+    t.is(mirror.size, 3);
+    t.true(mirror.allEntriesFetched);
+    t.deepEqual(mirror.value, [1, 2, 3]);
 });

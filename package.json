@@ -9,9 +9,9 @@
     "build:watch": "babel src --out-dir lib --watch",
     "build:umd": "webpack src/index.js dist/value-mirror.js && NODE_ENV=production webpack src/index.js dist/value-mirror.min.js",
     "lint": "eslint src test examples",
-    "test": "NODE_ENV=test mocha",
-    "test:watch": "NODE_ENV=test mocha --watch",
-    "test:cov": "babel-node ./node_modules/.bin/isparta cover ./node_modules/.bin/_mocha",
+    "test": "NODE_ENV=test ava",
+    "test:watch": "NODE_ENV=test ava --watch",
+    "test:cov": "NODE_ENV=test nyc ava",
     "prepublish": "npm run test && npm run clean && npm run build && npm run build:umd"
   },
   "repository": {
@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/davecoates/value-mirror",
   "devDependencies": {
+    "ava": "^0.16.0",
     "babel": "^6.3.13",
     "babel-cli": "^6.7.7",
     "babel-core": "^6.7.7",
@@ -44,8 +45,7 @@
     "eslint-plugin-flowtype": "^2.2.6",
     "expect": "^1.18.0",
     "immutable": "^3.8.1",
-    "isparta": "^3.0.3",
-    "mocha": "^2.3.4",
+    "nyc": "^8.1.0",
     "rimraf": "^2.4.4",
     "webpack": "^1.12.9",
     "webpack-dev-server": "^1.14.0"
@@ -54,5 +54,11 @@
     "invariant": "^2.2.0",
     "lodash.isobject": "^3.0.2",
     "uuid": "^2.0.2"
+  },
+  "ava": {
+    "require": [
+      "babel-core/register"
+    ],
+    "babel": "inherit"
   }
 }

@@ -59,7 +59,7 @@ function serializeRegExp(value: RegExp, objectId: RemoteObjectId) : RegExpDescri
         subType: 'regexp',
         value: {
             source,
-            flags: flags.join(''),
+            flags: flags,
         },
         objectId,
     };
@@ -76,12 +76,37 @@ function serializeIterable(value: Object, objectId: RemoteObjectId) : IterableDe
 function ensureJsonSerializable(object:Object) {
     if (object.size) {
         // Ensure that size is serializable - eg. Infinity for infinite collections
-        object.size = serializableNumberRepresentation(object.size);
+        object.size = serializableNumberRepresentation(object.size); // eslint-disable-line
     }
     return object;
 }
 
-export default function serializeObject(value: Object, objectId: RemoteObjectId, customObjectSerializer: ?ObjectSerializer = null) : ObjectDescriptor {
+/**
+ * In tests with Ava a Map created in the test is with polyfilled version
+ * from core-js but native implementation here - check if it's map-like
+ * instead. In practice I don't think this should be necessary otherwise -
+ * if you a polyfilling the polyfill should be loaded first and so any
+ * instanceof checks should be against the polyfilled version.
+ */
+function isMapLike(value) {
+    return value.constructor
+        && value.constructor.name === 'Map'
+        && typeof value.keys == 'function';
+}
+
+/**
+ * As above
+ */
+function isSetLike(value) {
+    return value.constructor
+        && value.constructor.name === 'Set'
+        && typeof value.entries == 'function';
+}
+
+export default function serializeObject(
+    value: Object,
+    objectId: RemoteObjectId,
+    customObjectSerializer: ?ObjectSerializer = null) : ObjectDescriptor {
     if (customObjectSerializer) {
         const result = customObjectSerializer(value, objectId);
         if (result) {
@@ -91,10 +116,10 @@ export default function serializeObject(value: Object, objectId: RemoteObjectId,
     if (Array.isArray(value)) {
         return serializeArray(value, objectId);
     }
-    if (value instanceof Map) {
+    if (value instanceof Map || isMapLike(value)) {
         return serializeMap(value, objectId);
     }
-    if (value instanceof Set) {
+    if (value instanceof Set || isSetLike(value)) {
         return serializeSet(value, objectId);
     }
     if (value instanceof Date) {

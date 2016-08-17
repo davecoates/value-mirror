@@ -1,5 +1,5 @@
 // @flow
-import type { ValueDescriptor, EntriesValueDescriptor, EntriesDescriptor, RemoteObjectId } from './types';
+import type { EntriesDescriptor, RemoteObjectId } from './types';
 import { getObject } from './remoteObject';
 import serialize from './serialize';
 
@@ -38,7 +38,7 @@ export default function getEntries(
         throw new Error('Object is not iterable');
     }
     const objectDescriptor = serialize(object);
-    if (objectDescriptor.type != 'object') {
+    if (objectDescriptor.type !== 'object') {
         throw new Error('Invalid object found; was not serialized to expected type');
     }
     let totalEntries = null;
@@ -48,7 +48,7 @@ export default function getEntries(
     if (objectDescriptor.size != null) {
         size = objectDescriptor.size;
     }
-    if (size !== 'Infinity') {
+    if (size && size !== 'Infinity') {
         totalEntries = objectDescriptor.size;
     } else if (!limit) {
         // TODO: Alternatively just iterate to fixed 'safe' limit and throw?

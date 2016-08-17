@@ -12,12 +12,14 @@ export default function getProperties(objectId: RemoteObjectId) : Array<ObjectPr
     const properties = [];
     const obj = getObject(objectId);
     for (const key in obj) {
-        const value = serialize(obj[key]);
-        let isRecursive = false;
-        if (value.type === 'object' && value.objectId != null) {
-            isRecursive = value.objectId === objectId;
+        if (obj.hasOwnProperty(key)) {
+            const value = serialize(obj[key]);
+            let isRecursive = false;
+            if (value.type === 'object' && value.objectId != null) {
+                isRecursive = value.objectId === objectId;
+            }
+            properties.push({ key, value, isRecursive });
         }
-        properties.push({ key, value, isRecursive });
     }
     return properties;
 }
