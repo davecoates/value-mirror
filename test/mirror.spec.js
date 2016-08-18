@@ -22,14 +22,6 @@ class DefaultClient {
 
 }
 
-function takeAll(iterator) {
-    const values = [];
-    for (const item of iterator) {
-        values.push(item);
-    }
-    return values;
-}
-
 const client = new DefaultClient();
 
 test('should handle numbers', t => {

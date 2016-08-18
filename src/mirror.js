@@ -3,8 +3,7 @@
 import invariant from 'invariant';
 import { unserializeNumber } from './serializePrimitive';
 import type {
-    ObjectDescriptor, RegExpDescriptor,
-    ObjectPropertyDescriptor, RemoteObjectId, EntriesDescriptor, ValueDescriptor,
+    ObjectDescriptor, ObjectPropertyDescriptor, RemoteObjectId, EntriesDescriptor, ValueDescriptor,
 } from './types';
 import type { GetEntriesConfig } from './getEntries';
 
@@ -71,6 +70,32 @@ export class ObjectMirror extends Mirror {
         });
     }
 
+    synchronise(mirror:Mirror) {
+        if (!(mirror instanceof ObjectMirror)) {
+            return Promise.resolve(false);
+        }
+        if (mirror.subType !== this.subType) {
+            return Promise.resolve(false);
+        }
+        const syncProperties = (m:ObjectMirror) => {
+            const promises = [];
+            for (let i = 0; i < (m.properties || []).length; i++) {
+                if (i >= this.properties.length) {
+                    break;
+                }
+                if (m.properties[i].value instanceof ObjectMirror
+                    && this.properties[i].value instanceof ObjectMirror) {
+                    promises.push(this.properties[i].value.synchronise(m.properties[i].value));
+                }
+            }
+            return Promise.all(promises);
+        };
+        if (mirror.properties) {
+            return this.getProperties().then(syncProperties.bind(this, mirror));
+        }
+        return syncProperties(mirror);
+    }
+
 }
 
 class DateMirror extends ObjectMirror {
@@ -99,9 +124,9 @@ class RegExpMirror extends ObjectMirror {
     }
 }
 
-class CollectionMirror extends ObjectMirror {
+export class CollectionMirror extends ObjectMirror {
 
-    allEntriesFetched = false;
+    allEntriesFetched:boolean = false;
     size:?number;
     iteratorId:?number;
 
@@ -115,7 +140,7 @@ class CollectionMirror extends ObjectMirror {
         }
     }
 
-    getEntries(config = {}) : Promise<EntriesDescriptor> {
+    getEntries(config:GetEntriesConfig = {}) : Promise<EntriesDescriptor> {
         if (this.allEntriesFetched) {
             return Promise.reject('All entries fetched');
         }
@@ -154,11 +179,33 @@ export class MapMirror extends CollectionMirror {
             buildMirror(k, this.client), buildMirror(v, this.client)));
     }
 
+    synchronise(mirror:Mirror) {
+        if (!(mirror instanceof MapMirror)) {
+            return Promise.resolve(false);
+        }
+        const fetchedCount = mirror.fetchedCount();
+        const syncEntries = (m:MapMirror) => {
+            // Naive, won't handle object keys
+            const promises = [];
+            for (const [key, value] of m.value.entries()) {
+                const v = this.value.get(key);
+                if (value instanceof ObjectMirror && v instanceof ObjectMirror) {
+                    promises.push(v.synchronise(value));
+                }
+            }
+            return Promise.all(promises);
+        };
+        const limit = fetchedCount - this.fetchedCount();
+        if (limit) {
+            return this.getEntries({ limit }).then(syncEntries.bind(this, mirror));
+        }
+        return syncEntries(mirror);
+    }
 }
 
 export class ListMirror extends CollectionMirror {
 
-    value:[any] = [];
+    value:Array<any> = [];
 
     fetchedCount() : number {
         return this.value.length;
@@ -166,6 +213,31 @@ export class ListMirror extends CollectionMirror {
 
     addEntries(result:[any]) {
         this.value.push(...result.map(v => buildMirror(v, this.client)));
+    }
+
+    synchronise(mirror:Mirror) {
+        if (!(mirror instanceof ListMirror)) {
+            return Promise.resolve(false);
+        }
+        const fetchedCount = mirror.fetchedCount();
+        const syncEntries = (m:ListMirror) => {
+            const promises = [];
+            for (let i = 0; i < m.value.length; i++) {
+                if (i >= this.value.length) {
+                    break;
+                }
+                if (m.value[i] instanceof ObjectMirror
+                    && this.value[i] instanceof ObjectMirror) {
+                    promises.push(this.value[i].synchronise(m.value[i]));
+                }
+            }
+            return Promise.all(promises);
+        };
+        const limit = fetchedCount - this.fetchedCount();
+        if (limit) {
+            return this.getEntries({ limit }).then(syncEntries.bind(this, mirror));
+        }
+        return syncEntries(mirror);
     }
 
 }
@@ -182,6 +254,34 @@ export class SetMirror extends CollectionMirror {
         result.forEach(v => this.value.add(buildMirror(v, this.client)));
     }
 
+    synchronise(mirror:Mirror) {
+        if (!(mirror instanceof SetMirror)) {
+            return Promise.resolve(false);
+        }
+        const fetchedCount = mirror.fetchedCount();
+        const syncEntries = (m:SetMirror) => {
+            const promises = [];
+            // $FlowIssue 1059
+            const thisValues = [...this.value];
+            // $FlowIssue 1059
+            const values = [...m.value];
+            for (let i = 0; i < thisValues.length; i++) {
+                if (i >= thisValues.length) {
+                    break;
+                }
+                if (values[i] instanceof ObjectMirror && thisValues[i] instanceof ObjectMirror) {
+                    promises.push(thisValues[i].synchronise(values[i]));
+                }
+            }
+            return Promise.all(promises);
+        };
+        const limit = fetchedCount - this.fetchedCount();
+        if (limit) {
+            return this.getEntries({ limit }).then(syncEntries.bind(this, mirror));
+        }
+        return syncEntries(mirror);
+    }
+
 }
 
 export class FunctionMirror extends Mirror {
@@ -190,7 +290,8 @@ export class FunctionMirror extends Mirror {
 export class SymbolMirror extends Mirror {
 }
 
-function  buildObjectMirror(serializedRepresentation:ObjectDescriptor, client:MirrorClient) : ?MirrorType {
+function buildObjectMirror(
+    serializedRepresentation:ObjectDescriptor, client:MirrorClient) : ?MirrorType {
     const { subType, objectId } = serializedRepresentation;
     if (!valueByObjectId.has(objectId)) {
         let value;

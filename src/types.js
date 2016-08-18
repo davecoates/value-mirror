@@ -78,6 +78,7 @@ export type DateDescriptor = {
 export type FunctionDescriptor = {
     type: 'function';
     name: string;
+    value: string;
 }
 export type ObjectDescriptor =
     | PlainObjectDescriptor
