@@ -164,7 +164,7 @@ test('should serialize date', t => {
 });
 
 test('should serialize regexp', t => {
-    const r = new RegExp(/[a-z]*/, 'ig');
+    const r = new RegExp('[a-z]*', 'ig');
     const mirror = buildMirror(serialize(r), client);
     t.is(mirror.type, 'object');
     t.is(mirror.subType, 'regexp');
