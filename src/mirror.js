@@ -52,6 +52,7 @@ export class ObjectMirror extends Mirror {
 
     properties:Array<ObjectProperty>;
     objectId:RemoteObjectId;
+    meta:{} = {};
 
     constructor(data:ValueDescriptor, client:MirrorClient) {
         super(data, client);
@@ -90,10 +91,19 @@ export class ObjectMirror extends Mirror {
             }
             return Promise.all(promises);
         };
+        this.meta = mirror.meta;
         if (mirror.properties) {
             return this.getProperties().then(syncProperties.bind(this, mirror));
         }
         return syncProperties(mirror);
+    }
+
+    setMetaData(data:{}|(data:{}) => {}) {
+        if (typeof data == 'function') {
+            this.meta = { ...this.meta, ...data(this.meta) };
+            return;
+        }
+        this.meta = { ...this.meta, ...data };
     }
 
 }
@@ -195,6 +205,7 @@ export class MapMirror extends CollectionMirror {
             }
             return Promise.all(promises);
         };
+        this.meta = mirror.meta;
         const limit = fetchedCount - this.fetchedCount();
         if (limit) {
             return this.getEntries({ limit }).then(syncEntries.bind(this, mirror));
@@ -234,6 +245,7 @@ export class ListMirror extends CollectionMirror {
             return Promise.all(promises);
         };
         const limit = fetchedCount - this.fetchedCount();
+        this.meta = mirror.meta;
         if (limit) {
             return this.getEntries({ limit }).then(syncEntries.bind(this, mirror));
         }
@@ -275,6 +287,7 @@ export class SetMirror extends CollectionMirror {
             }
             return Promise.all(promises);
         };
+        this.meta = mirror.meta;
         const limit = fetchedCount - this.fetchedCount();
         if (limit) {
             return this.getEntries({ limit }).then(syncEntries.bind(this, mirror));
