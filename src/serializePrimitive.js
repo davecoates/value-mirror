@@ -14,9 +14,9 @@ export function serializableNumberRepresentation(
 ) : number|UnserializableNumber {
     if (isNaN(value)) {
         return 'NaN';
-    } else if (Infinity === value) {
+    } else if (Number.POSITIVE_INFINITY === value) {
         return 'Infinity';
-    } else if (-Infinity === value) {
+    } else if (Number.NEGATIVE_INFINITY === value) {
         return '-Infinity';
     } else if (value === -0) {
         if (convertNegativeZero) {
@@ -29,12 +29,12 @@ export function serializableNumberRepresentation(
 }
 
 export function unserializeNumber(value: number | string) : number {
-    if (typeof(value) == 'number') {
+    if (typeof value == 'number') {
         return value;
     }
     if (value === 'NaN') return NaN;
-    if (value === 'Infinity') return Infinity;
-    if (value === '-Infinity') return -Infinity;
+    if (value === 'Infinity') return Number.POSITIVE_INFINITY;
+    if (value === '-Infinity') return Number.NEGATIVE_INFINITY;
     if (value === '-0') return -0;
 
     throw new Error(`Unknown string representation of number: ${value}`);

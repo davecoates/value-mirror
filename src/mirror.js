@@ -86,7 +86,9 @@ export class ObjectMirror extends Mirror {
                 }
                 if (m.properties[i].value instanceof ObjectMirror
                     && this.properties[i].value instanceof ObjectMirror) {
-                    promises.push(this.properties[i].value.synchronise(m.properties[i].value));
+                    if (!this.properties[i].isRecursive) {
+                        promises.push(this.properties[i].value.synchronise(m.properties[i].value));
+                    }
                 }
             }
             return Promise.all(promises);
