@@ -302,12 +302,14 @@ export class SetMirror extends CollectionMirror {
 export class FunctionMirror extends Mirror {
     synchronise(mirror:Mirror) { // eslint-disable-line no-unused-vars
         // Intentionally blank
+        return Promise.resolve();
     }
 }
 
 export class SymbolMirror extends Mirror {
     synchronise(mirror:Mirror) { // eslint-disable-line no-unused-vars
         // Intentionally blank
+        return Promise.resolve();
     }
 }
 
